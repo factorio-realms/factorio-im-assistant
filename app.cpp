@@ -25,6 +25,17 @@ static std::wstring get_process_filename(DWORD processId)
 
 static BOOL CALLBACK get_factorio_window_proc(HWND hwnd, LPARAM lParam)
 {
+#ifdef _DEBUG
+	DWORD processId = 0;
+	GetWindowThreadProcessId(hwnd, &processId);
+	std::wstring fpath = get_process_filename(processId);
+	std::wstring fname = PathFindFileName(fpath.c_str());
+	if (fname == L"notepad.exe") {
+		*((HWND*)lParam) = hwnd;
+		return FALSE;
+	}
+	return TRUE;
+#else
 	TCHAR className[20];
 	GetClassName(hwnd, className, 20);
 	if (_tcscmp(className, _T("ALEX")) != 0)
@@ -39,6 +50,7 @@ static BOOL CALLBACK get_factorio_window_proc(HWND hwnd, LPARAM lParam)
 		return FALSE;
 	}
 	return TRUE;
+#endif
 }
 
 static HWND get_factorio_window()
@@ -125,6 +137,48 @@ void OnTimer(HWND hWnd)
 	}
 }
 
+void MapDialogRectReverse(HWND hDlg, LPRECT rc)
+{
+	RECT tmp;
+	tmp.left = 0;
+	tmp.top = 0;
+	tmp.right = 400;
+	tmp.bottom = 800;
+	MapDialogRect(hDlg, &tmp);
+	LONG baseunitX = tmp.right;
+	LONG baseunitY = tmp.bottom;
+
+	rc->left = MulDiv(rc->left, 400, baseunitX);
+	rc->right = MulDiv(rc->right, 400, baseunitX);
+	rc->top = MulDiv(rc->top, 800, baseunitY);
+	rc->bottom = MulDiv(rc->bottom, 800, baseunitY);
+}
+
+void MoveWindowInDialog(HWND hDlg, HWND hCtl, int x, int y, int width, int height, BOOL bPaint)
+{
+	RECT rc;
+	rc.left = x;
+	rc.top = y;
+	rc.right = x + width;
+	rc.bottom = y + height;
+	MapDialogRect(hDlg, &rc);
+	MoveWindow(hCtl, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, bPaint);
+}
+
+void RearrangeCtl(HWND hWnd)
+{
+	HWND hText = GetDlgItem(hWnd, IDC_TEXT);
+	HWND hOK = GetDlgItem(hWnd, IDOK);
+	HWND hCancel = GetDlgItem(hWnd, IDCANCEL);
+
+	RECT client;
+	GetClientRect(hWnd, &client);
+	MapDialogRectReverse(hWnd, &client);
+	MoveWindowInDialog(hWnd, hText, 7, 7, client.right - client.left - 14, 14, TRUE);
+	MoveWindowInDialog(hWnd, hOK, client.right - 114, client.bottom - 21, 50, 14, TRUE);
+	MoveWindowInDialog(hWnd, hCancel, client.right - 57, client.bottom - 21, 50, 14, TRUE);
+}
+
 INT_PTR CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
@@ -136,6 +190,8 @@ INT_PTR CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			exit(1);
 		}
 		SetTimer(hWnd, 0, 1000, NULL);
+		SetWindowTextW(hWnd, CAPTION);
+		RearrangeCtl(hWnd);
 		return 1;
 	case WM_HOTKEY:
 		if (!IsWindowVisible(hWnd))
@@ -156,8 +212,13 @@ INT_PTR CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		{
 			HideAssistant(hWnd);
 		}
+		return 1;
 	case WM_TIMER:
 		OnTimer(hWnd);
+		return 1;
+	case WM_SIZE:
+		RearrangeCtl(hWnd);
+		return 1;
 	}
 	return 0;
 }
