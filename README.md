@@ -1,10 +1,12 @@
-Factorio input method assistant for Linux
-=========================================
+Factorio input method assistant
+===============================
 
-A tool for Chinese, Japanese and Korean to use input method under Linux. Provided
+A tool for Chinese, Japanese and Korean to use input method. Provided
 by [factorio-realms.com](https://factorio-realms.com)
 
-This version does only support Windows. You can find Linux version here:
+This version does only support Windows.
+
+You can find Linux version here:  
 https://github.com/factorio-realms/factorio-im-assistant-for-linux
 
 Install
