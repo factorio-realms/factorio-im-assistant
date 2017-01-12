@@ -17,8 +17,8 @@ You can build it from source.
 
 1. Download source from github
 2. Open factorio-im-assistant.sln by Visual Studio 14 or later.
-3. Choose Release target. (Important!! For easy debuging, debug version is targeting
-to nodepad.exe instead of factorio.exe. So debug version not works.)
+3. Choose Release configuration. (Important!! For easy debuging, debug version
+is targeting to nodepad.exe instead of factorio.exe. So debug version not works.)
 
 Usage
 -----
