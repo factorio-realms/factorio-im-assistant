@@ -1,12 +1,12 @@
 *.swp
 *~
 
-/Debug
-/Release
-/ipch
-/x64/Debug
-/x64/Release
-/.vs
+/project/Debug
+/project/Release
+/project/ipch
+/project/x64/Debug
+/project/x64/Release
+/project/.vs
 
 *.aps
 *.db
