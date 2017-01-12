@@ -23,7 +23,7 @@ Usage
 
 1. Launch factorio, and join game
 2. Launch factorio-im-assistant.exe
-3. Toggle `Grave`(The key beside `1` on keybord)
+3. Toggle `Grave`(The key next to `1` on the keybord)
 4. Type whatever you want
 5. Press `Enter`
 
