@@ -94,6 +94,19 @@ void SendString(HWND hWnd, LPCWSTR str, int len)
 	SendMessage(hFactorio, WM_KEYUP, VK_CONTROL, 0);
 }
 
+void GetMinSize(HWND hWnd, LPSIZE sz)
+{
+	RECT rcMin;
+	rcMin.left = 0;
+	rcMin.top = 0;
+	rcMin.right = 7 + 50 + 7 + 50 + 7;
+	rcMin.bottom = 7 + 14 + 7 + 14 + 7;
+	MapDialogRect(hWnd, &rcMin);
+	AdjustWindowRect(&rcMin, (DWORD)GetWindowLongPtr(hWnd, GWL_STYLE), FALSE);
+	sz->cx = rcMin.right - rcMin.left;
+	sz->cy = rcMin.bottom - rcMin.top;
+}
+
 void ShowAssistant(HWND hWnd)
 {
 	HWND hFactorio = GetWindow(hWnd, GW_OWNER);
@@ -102,16 +115,12 @@ void ShowAssistant(HWND hWnd)
 
 	SendKey(hWnd, VK_OEM_3);
 
-	RECT rcMin = { 0 };
-	rcMin.right = 7 + 50 + 7 + 50 + 7;
-	rcMin.bottom = 7 + 14 + 7 + 14 + 7;
-	MapDialogRect(hWnd, &rcMin);
-	AdjustWindowRect(&rcMin, (DWORD)GetWindowLongPtr(hWnd, GWL_STYLE), FALSE);
-	LONG minHeight = rcMin.bottom - rcMin.top;
+	SIZE szMin;
+	GetMinSize(hWnd, &szMin);
 
 	RECT rc;
 	GetWindowRect(hFactorio, &rc);
-	rc.top = rc.bottom - minHeight;
+	rc.top = rc.bottom - szMin.cy;
 
 	MoveWindow(hWnd, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, TRUE);
 
@@ -191,9 +200,12 @@ void RearrangeCtl(HWND hWnd)
 	RECT client;
 	GetClientRect(hWnd, &client);
 	MapDialogRectReverse(hWnd, &client);
-	MoveWindowInDialog(hWnd, hText, 7, 7, client.right - client.left - 14, 14, TRUE);
-	MoveWindowInDialog(hWnd, hOK, client.right - 114, client.bottom - 21, 50, 14, TRUE);
-	MoveWindowInDialog(hWnd, hCancel, client.right - 57, client.bottom - 21, 50, 14, TRUE);
+	MoveWindowInDialog(hWnd, hText, 7, 7, client.right - client.left - 14, 14, FALSE);
+	MoveWindowInDialog(hWnd, hOK, client.right - 114, client.bottom - 21, 50, 14, FALSE);
+	MoveWindowInDialog(hWnd, hCancel, client.right - 57, client.bottom - 21, 50, 14, FALSE);
+
+	GetClientRect(hWnd, &client);
+	InvalidateRect(hWnd, &client,FALSE);
 }
 
 INT_PTR CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -209,6 +221,7 @@ INT_PTR CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		SetTimer(hWnd, 0, 1000, NULL);
 		SetWindowTextW(hWnd, CAPTION);
 		RearrangeCtl(hWnd);
+		SetWindowLongPtr(hWnd, GWL_STYLE, GetWindowLongPtr(hWnd, GWL_STYLE) | WS_CLIPCHILDREN);
 		return 1;
 	case WM_HOTKEY:
 		if (!IsWindowVisible(hWnd))
@@ -235,6 +248,15 @@ INT_PTR CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		return 1;
 	case WM_SIZE:
 		RearrangeCtl(hWnd);
+		return 1;
+	case WM_GETMINMAXINFO:
+		{
+			SIZE szMin;
+			GetMinSize(hWnd, &szMin);
+			MINMAXINFO * mmi = (MINMAXINFO *)lParam;
+			mmi->ptMinTrackSize.x = szMin.cx;
+			mmi->ptMinTrackSize.y = szMin.cy;
+		}
 		return 1;
 	}
 	return 0;
