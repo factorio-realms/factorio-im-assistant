@@ -96,7 +96,24 @@ void SendString(HWND hWnd, LPCWSTR str, int len)
 
 void ShowAssistant(HWND hWnd)
 {
+	HWND hFactorio = GetWindow(hWnd, GW_OWNER);
+	if (!hFactorio)
+		return;
+
 	SendKey(hWnd, VK_OEM_3);
+
+	RECT rcMin = { 0 };
+	rcMin.right = 7 + 50 + 7 + 50 + 7;
+	rcMin.bottom = 7 + 14 + 7 + 14 + 7;
+	MapDialogRect(hWnd, &rcMin);
+	AdjustWindowRect(&rcMin, (DWORD)GetWindowLongPtr(hWnd, GWL_STYLE), FALSE);
+	LONG minHeight = rcMin.bottom - rcMin.top;
+
+	RECT rc;
+	GetWindowRect(hFactorio, &rc);
+	rc.top = rc.bottom - minHeight;
+
+	MoveWindow(hWnd, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, TRUE);
 
 	HWND hText = GetDlgItem(hWnd, IDC_TEXT);
 	SetWindowTextW(hText, L"");
