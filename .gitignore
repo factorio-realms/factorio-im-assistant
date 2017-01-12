@@ -4,6 +4,10 @@
 /Debug
 /Release
 /ipch
+/x64/Debug
+/x64/Release
+/.vs
+
 *.aps
 *.db
 *.user
