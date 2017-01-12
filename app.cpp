@@ -9,6 +9,7 @@
 #include <Shlwapi.h>
 
 LPCWSTR CAPTION = L"Factorio IM assistant by factorio-realms.com";
+HINSTANCE g_hInst;
 
 static std::wstring get_process_filename(DWORD processId)
 {
@@ -213,15 +214,21 @@ INT_PTR CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	switch (uMsg)
 	{
 	case WM_INITDIALOG:
-		if (!RegisterHotKey(hWnd, 0, 0, VK_OEM_3))
 		{
-			MessageBox(0, L"Failed to register hotkey!", CAPTION, MB_OK | MB_ICONERROR);
-			exit(1);
-		}
-		SetTimer(hWnd, 0, 1000, NULL);
-		SetWindowTextW(hWnd, CAPTION);
-		RearrangeCtl(hWnd);
-		SetWindowLongPtr(hWnd, GWL_STYLE, GetWindowLongPtr(hWnd, GWL_STYLE) | WS_CLIPCHILDREN);
+			if (!RegisterHotKey(hWnd, 0, 0, VK_OEM_3))
+			{
+				MessageBox(0, L"Failed to register hotkey!", CAPTION, MB_OK | MB_ICONERROR);
+				exit(1);
+			}
+			SetTimer(hWnd, 0, 1000, NULL);
+			SetWindowTextW(hWnd, CAPTION);
+			RearrangeCtl(hWnd);
+			SetWindowLongPtr(hWnd, GWL_STYLE, GetWindowLongPtr(hWnd, GWL_STYLE) | WS_CLIPCHILDREN);
+
+			HICON hIcon = LoadIconW(g_hInst, MAKEINTRESOURCEW(IDI_FACTORIOIMASSISTANT));
+			SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+			SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+	}
 		return 1;
 	case WM_HOTKEY:
 		if (!IsWindowVisible(hWnd))
@@ -270,6 +277,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
+	g_hInst = hInstance;
 
 	HWND hFactorio = get_factorio_window();
 	if (!hFactorio)
