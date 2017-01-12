@@ -1,0 +1,9 @@
+*.swp
+*~
+
+/Debug
+/Release
+/ipch
+*.aps
+*.db
+*.user
