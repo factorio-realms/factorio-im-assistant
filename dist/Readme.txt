@@ -13,13 +13,12 @@ The more
 --------
 
 If you like our some small tools, please give us a star on github.com.
-
-If you met any problem, please send us an issue on github.com.
-
-If you want to create a owner factorio server. We provide the best factorio hosting service.
-
 Project address: https://github.com/factorio-realms/factorio-im-assistant
 
+If you met any problem, please send us an issue on github.com.
+Issue tracker: https://github.com/factorio-realms/factorio-im-assistant/issues
+
+If you want to create a owner factorio server. We provide the best factorio hosting service.
 Homepage: https://factorio-realms.com
 
 
