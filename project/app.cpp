@@ -10,6 +10,8 @@
 
 LPCWSTR CAPTION = L"Factorio IM assistant by factorio-realms.com";
 HINSTANCE g_hInst;
+std::vector<std::wstring> g_history;
+int g_cur = 0;
 
 static std::wstring get_process_filename(DWORD processId)
 {
@@ -108,6 +110,15 @@ void GetMinSize(HWND hWnd, LPSIZE sz)
 	sz->cy = rcMin.bottom - rcMin.top;
 }
 
+std::wstring GetWindowText(HWND hWnd)
+{
+	int len = GetWindowTextLengthW(hWnd);
+	std::vector<wchar_t> str;
+	str.resize(len + 1);
+	GetWindowText(hWnd, &str[0], len + 1);
+	return std::wstring(&str[0], len);
+}
+
 void ShowAssistant(HWND hWnd)
 {
 	HWND hFactorio = GetWindow(hWnd, GW_OWNER);
@@ -122,11 +133,16 @@ void ShowAssistant(HWND hWnd)
 	RECT rc;
 	GetWindowRect(hFactorio, &rc);
 	rc.top = rc.bottom - szMin.cy;
-
 	MoveWindow(hWnd, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, TRUE);
 
+	if (g_cur >= (int)g_history.size())
+	{
+		g_history.push_back(L"");
+	}
+
 	HWND hText = GetDlgItem(hWnd, IDC_TEXT);
-	SetWindowTextW(hText, L"");
+	SetWindowTextW(hText, g_history[g_cur].c_str());
+	SendMessage(hText, EM_SETSEL, 0, -1);
 	SetFocus(hText);
 	ShowWindow(hWnd, SW_SHOW);
 }
@@ -134,6 +150,9 @@ void ShowAssistant(HWND hWnd)
 void HideAssistant(HWND hWnd)
 {
 	ShowWindow(hWnd, SW_HIDE);
+
+	HWND hText = GetDlgItem(hWnd, IDC_TEXT);
+	g_history[g_cur] = GetWindowText(hText);
 
 	SendKey(hWnd, VK_OEM_3);
 }
@@ -143,13 +162,32 @@ void Commit(HWND hWnd)
 	ShowWindow(hWnd, SW_HIDE);
 
 	HWND hText = GetDlgItem(hWnd, IDC_TEXT);
-	int len = GetWindowTextLengthW(hText);
-	std::vector<wchar_t> str;
-	str.resize(len + 1);
-	GetWindowText(hText, &str[0], len + 1);
+	std::wstring str = GetWindowText(hText);
 
-	SendString(hWnd, &str[0], len);
+	if (str.size() > 0)
+	{
+		g_history[g_history.size() - 1] = str;
+		g_cur = g_history.size();
+	}
+
+	SendString(hWnd, &str[0], str.size());
 	SendKey(hWnd, VK_RETURN);
+}
+
+void TravelHistory(HWND hDlg, int off)
+{
+	if (g_cur + off < 0)
+		return;
+	if (g_cur + off >= (int)g_history.size())
+		return;
+
+	HWND hText = GetDlgItem(hDlg, IDC_TEXT);
+	std::wstring str = GetWindowText(hText);
+
+	g_history[g_cur] = str;
+	g_cur += off;
+	SetWindowText(hText, &g_history[g_cur][0]);
+	SendMessage(hText, EM_SETSEL, 0, -1);
 }
 
 void OnTimer(HWND hWnd)
@@ -269,6 +307,33 @@ INT_PTR CALLBACK MainDialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	return 0;
 }
 
+INT_PTR DlgMsgHook(HWND hDlg, MSG * msg)
+{
+	HWND hEdit = GetDlgItem(hDlg, IDC_TEXT);
+	if (msg->hwnd == hEdit)
+	{
+		if (msg->message == WM_KEYDOWN)
+		{
+			if (msg->wParam == VK_UP)
+			{
+				TravelHistory(hDlg, -1);
+				return TRUE;
+			}
+			if (msg->wParam == VK_DOWN)
+			{
+				TravelHistory(hDlg, 1);
+				return TRUE;
+			}
+		}
+	}
+
+	if (IsDialogMessage(hDlg, msg))
+	{
+		return TRUE;
+	}
+
+	return FALSE;
+}
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -294,7 +359,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MSG msg;
     while (GetMessage(&msg, nullptr, 0, 0))
     {
-		if (!IsDialogMessage(hDlg, &msg))
+		if (!DlgMsgHook(hDlg, &msg))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
