@@ -29,4 +29,9 @@ Usage
 4. Type whatever you want
 5. Press `Enter`
 
+Extra Features
+--------------
+
+* Press `UP` or `DOWN` to travel histories.
+
 ![example.jpg](https://github.com/factorio-realms/factorio-im-assistant/blob/master/example.jpg?raw=true)

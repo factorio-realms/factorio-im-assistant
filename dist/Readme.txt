@@ -9,6 +9,11 @@ Usage
 3. Back to game
 4. Press ` to invoke assistant
 
+Extra Features
+--------------
+
+* Press `UP` or `DOWN` to travel histories.
+
 The more
 --------
 
